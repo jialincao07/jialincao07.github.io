@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disparities in Washington State: Sammamish, Bellevue, Yakima</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1, h2 {
+            color: #1f2937;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .graph-container {
+            width: 100%;
+            height: 400px; /* Default height, can be adjusted by D3 */
+            overflow-x: auto; /* Allow horizontal scrolling for smaller screens if needed */
+        }
+        .bar {
+            fill: #4c51bf; /* Indigo 600 */
+            transition: fill 0.3s ease;
+        }
+        .bar:hover {
+            fill: #667eea; /* Indigo 500 lighter on hover */
+        }
+        .axis text {
+            font-size: 0.875rem;
+            fill: #4b5563;
+        }
+        .axis path, .axis line {
+            stroke: #d1d5db;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: auto;
+            padding: 0.5rem 1rem;
+            background: #333;
+            color: white;
+            border-radius: 0.5rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            font-size: 0.875rem;
+            z-index: 1000;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 1.5rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+        .legend-color-box {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="container">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl lg:text-5xl font-extrabold text-indigo-800 leading-tight">
+                Disparities in Washington State
+            </h1>
+            <p class="text-xl text-gray-600 mt-2">A Comparative Analysis of Sammamish, Bellevue, and Yakima</p>
+        </header>
+
+        <section class="card">
+            <h2 class="text-3xl font-bold mb-4">Introduction</h2>
+            <p class="text-gray-700">
+                This webpage illustrates key socioeconomic, educational, and demographic disparities across three distinct cities in Washington State: Sammamish, Bellevue, and Yakima. These cities represent a spectrum of economic and social conditions, from affluent suburban areas to more rural, agricultural communities. The data presented aims to highlight these differences through interactive visualizations.
+            </p>
+            <p class="text-gray-700 mt-4">
+                <strong>Sammamish:</strong> Located on the Sammamish Plateau, it is known for its high median household incomes, highly educated populace, and expensive housing. It is predominantly a residential suburb with a strong emphasis on family life and outdoor recreation.
+            </p>
+            <p class="text-gray-700 mt-2">
+                <strong>Bellevue:</strong> A larger city across Lake Washington from Seattle, Bellevue is a major employment center and a hub for tech companies. It boasts high incomes, a diverse population, and a mix of urban and suburban characteristics with significant cultural amenities.
+            </p>
+            <p class="text-gray-700 mt-2">
+                <strong>Yakima:</strong> Situated in the Yakima Valley, it is the economic and cultural center of a large agricultural region. Yakima has a significantly different demographic and economic profile, with lower median incomes and different challenges related to education and healthcare access compared to its Puget Sound counterparts.
+            </p>
+        </section>
+
+        <section class="card">
+            <h2 class="text-3xl font-bold mb-4">Median Household Income (Latest Available Data)</h2>
+            <p class="text-gray-700 mb-4">
+                This chart displays the median household income for each city, providing insight into the general economic prosperity of its residents.
+            </p>
+            <div id="income-chart" class="graph-container"></div>
+            <div class="tooltip"></div>
+            <p class="text-gray-600 text-sm mt-4">
+                <em>Source: U.S. Census Bureau QuickFacts (Sammamish 2019-2023), Data USA (Bellevue 2023), Community Health Needs Assessment (Yakima County 2018-2020 data proxy). Note: Yakima data is a proxy from county-level or regional data due to specific city data availability.</em>
+            </p>
+        </section>
+
+        <section class="card">
+            <h2 class="text-3xl font-bold mb-4">Educational Attainment (Bachelor's Degree or Higher, Age 25+)</h2>
+            <p class="text-gray-700 mb-4">
+                This graph illustrates the percentage of the population aged 25 and over who hold a bachelor's degree or higher, reflecting the educational capital within each community.
+            </p>
+            <div id="education-chart" class="graph-container"></div>
+            <div class="tooltip"></div>
+            <p class="text-gray-600 text-sm mt-4">
+                <em>Source: U.S. Census Bureau QuickFacts (Sammamish), Washington State Office of Financial Management (King County for Bellevue proxy), estimated for Yakima based on regional trends. Note: Bellevue and Yakima figures are proxies/estimates based on available regional data or comparative socioeconomic indicators.</em>
+            </p>
+        </section>
+
+        <section class="card">
+            <h2 class="text-3xl font-bold mb-4">Median Home Sale Price (Latest Available Data)</h2>
+            <p class="text-gray-700 mb-4">
+                This chart compares the median home sale prices, showcasing the stark differences in housing affordability and real estate markets.
+            </p>
+            <div id="housing-chart" class="graph-container"></div>
+            <div class="tooltip"></div>
+            <p class="text-gray-600 text-sm mt-4">
+                <em>Source: Redfin, Data USA. Note: Bellevue value is an estimate based on recent data for Bellevue. Yakima data reflects recent median sale prices.</em>
+            </p>
+        </section>
+
+        <section class="card">
+            <h2 class="text-3xl font-bold mb-4">Racial and Ethnic Demographics (Percentage of Population)</h2>
+            <p class="text-gray-700 mb-4">
+                This grouped bar chart shows the percentage breakdown of major racial and ethnic groups in each city, highlighting the diversity or homogeneity of their populations.
+            </p>
+            <div class="flex flex-wrap justify-center mb-4">
+                <div class="legend-item"><span class="legend-color-box" style="background-color: #6a0572;"></span>White</div>
+                <div class="legend-item"><span class="legend-color-box" style="background-color: #ff9900;"></span>Asian</div>
+                <div class="legend-item"><span class="legend-color-box" style="background-color: #007bff;"></span>Hispanic/Latino</div>
+                <div class="legend-item"><span class="legend-color-box" style="background-color: #28a745;"></span>Other/Multiracial</div>
+            </div>
+            <div id="demographics-chart" class="graph-container"></div>
+            <div class="tooltip"></div>
+            <p class="text-gray-600 text-sm mt-4">
+                <em>Source: U.S. Census Bureau QuickFacts, Data USA, and estimates based on regional socioeconomic reports. Note: Yakima's demographic breakdown is an estimate to reflect known trends given detailed city-specific data limitations for all categories.</em>
+            </p>
+        </section>
+
+        <footer class="text-center text-gray-500 text-sm mt-10">
+            <p>&copy; 2025 Disparities Analysis. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Data for the charts
+        const incomeData = [
+            { city: 'Sammamish', value: 227273, label: '$227,273' },
+            { city: 'Bellevue', value: 161300, label: '$161,300' },
+            { city: 'Yakima', value: 49497, label: '$49,497' }
+        ];
+
+        const educationData = [
+            { city: 'Sammamish', value: 77.0, label: '77.0%' },
+            { city: 'Bellevue', value: 55.0, label: '55.0%' },
+            { city: 'Yakima', value: 20.0, label: '20.0%' }
+        ];
+
+        const housingData = [
+            { city: 'Sammamish', value: 1730000, label: '$1,730,000' },
+            { city: 'Bellevue', value: 1200000, label: '$1,200,000' },
+            { city: 'Yakima', value: 335000, label: '$335,000' }
+        ];
+
+        const demographicsData = [
+            { city: 'Sammamish', White: 51.4, Asian: 35.8, Hispanic: 5.4, Other: 6.2 },
+            { city: 'Bellevue', White: 42.4, Asian: 40.9, Hispanic: 8.51, Other: 8.19 },
+            { city: 'Yakima', White: 40.0, Asian: 3.0, Hispanic: 50.0, Other: 7.0 }
+        ];
+
+        // Chart dimensions and margins
+        const margin = { top: 30, right: 30, bottom: 60, left: 80 }; // Increased bottom margin for labels
+        const width = 800 - margin.left - margin.right;
+        const height = 350 - margin.top - margin.bottom;
+
+        // Tooltip setup
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        // Function to create a generic bar chart
+        function createBarChart(data, elementId, yAxisLabel, isCurrency = false) {
+            const svg = d3.select(`#${elementId}`)
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            // X scale (cities)
+            const x = d3.scaleBand()
+                .range([0, width])
+                .domain(data.map(d => d.city))
+                .padding(0.3); // Increased padding for wider bars
+
+            // Y scale (values)
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.value) * 1.1]) // 10% buffer for max value
+                .range([height, 0]);
+
+            // X axis
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            // Y axis
+            svg.append("g")
+                .call(d3.axisLeft(y).tickFormat(d => {
+                    if (isCurrency) {
+                        return `$${d3.format(".2s")(d).replace(/G/, "B")}`; // Formats large numbers like $1.7M
+                    }
+                    return d + (elementId === 'education-chart' ? '%' : ''); // Add % for education chart
+                }));
+
+            // Y axis label
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20) // Adjust position
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "0.9rem")
+                .style("fill", "#4b5563")
+                .text(yAxisLabel);
+
+            // Bars
+            svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", d => x(d.city))
+                .attr("y", d => y(d.value))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.value))
+                .attr("rx", 8) /* Rounded corners */
+                .attr("ry", 8) /* Rounded corners */
+                .on("mouseover", (event, d) => {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`<strong>${d.city}</strong><br/>${d.label}`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", () => {
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+
+            // Value labels on bars
+            svg.selectAll(".bar-label")
+                .data(data)
+                .enter().append("text")
+                .attr("class", "bar-label")
+                .attr("x", d => x(d.city) + x.bandwidth() / 2)
+                .attr("y", d => y(d.value) - 5) // Position above the bar
+                .attr("text-anchor", "middle")
+                .style("font-size", "0.8rem")
+                .style("fill", "#1f2937")
+                .text(d => d.label);
+        }
+
+        // Create the charts
+        createBarChart(incomeData, 'income-chart', 'Median Household Income', true);
+        createBarChart(educationData, 'education-chart', 'Percentage');
+        createBarChart(housingData, 'housing-chart', 'Median Home Sale Price', true);
+
+
+        // Demographics Chart (Grouped Bar Chart)
+        function createDemographicsChart(data, elementId) {
+            const svg = d3.select(`#${elementId}`)
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const subgroups = Object.keys(data[0]).slice(1); // Exclude 'city'
+            const groups = data.map(d => d.city);
+
+            // X scale for groups (cities)
+            const x0 = d3.scaleBand()
+                .domain(groups)
+                .range([0, width])
+                .paddingInner(0.1);
+
+            // X scale for subgroups (ethnic groups) within each group
+            const x1 = d3.scaleBand()
+                .domain(subgroups)
+                .range([0, x0.bandwidth()])
+                .padding(0.05);
+
+            // Y scale (percentages)
+            const y = d3.scaleLinear()
+                .domain([0, 100])
+                .range([height, 0]);
+
+            // Color scale
+            const color = d3.scaleOrdinal()
+                .domain(subgroups)
+                .range(['#6a0572', '#ff9900', '#007bff', '#28a745']); // Custom colors
+
+            // X axis
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x0))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+            // Y axis
+            svg.append("g")
+                .call(d3.axisLeft(y).tickFormat(d => d + '%'));
+
+            // Y axis label
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left + 20)
+                .attr("x", 0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .style("font-size", "0.9rem")
+                .style("fill", "#4b5563")
+                .text("Percentage of Population");
+
+            // Create the bars
+            svg.append("g")
+                .selectAll("g")
+                .data(data)
+                .enter()
+                .append("g")
+                .attr("transform", d => `translate(${x0(d.city)},0)`)
+                .selectAll("rect")
+                .data(d => subgroups.map(key => ({ key: key, value: d[key], city: d.city })))
+                .enter()
+                .append("rect")
+                .attr("x", d => x1(d.key))
+                .attr("y", d => y(d.value))
+                .attr("width", x1.bandwidth())
+                .attr("height", d => height - y(d.value))
+                .attr("fill", d => color(d.key))
+                .attr("rx", 4) /* Rounded corners */
+                .attr("ry", 4) /* Rounded corners */
+                .on("mouseover", (event, d) => {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(`<strong>${d.city} - ${d.key}</strong><br/>${d.value}%`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseout", () => {
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
+
+            // Add value labels on top of each bar
+            svg.append("g")
+                .selectAll("g")
+                .data(data)
+                .enter()
+                .append("g")
+                .attr("transform", d => `translate(${x0(d.city)},0)`)
+                .selectAll("text")
+                .data(d => subgroups.map(key => ({ key: key, value: d[key], city: d.city })))
+                .enter()
+                .append("text")
+                .attr("x", d => x1(d.key) + x1.bandwidth() / 2)
+                .attr("y", d => y(d.value) - 5) // Position above the bar
+                .attr("text-anchor", "middle")
+                .style("font-size", "0.7rem")
+                .style("fill", "#1f2937")
+                .text(d => `${d.value}%`);
+        }
+
+        createDemographicsChart(demographicsData, 'demographics-chart');
+
+        // Responsive adjustments (basic)
+        window.addEventListener('resize', () => {
+            // Re-render charts on resize if needed, or use responsive SVG techniques
+            // For simplicity, this example doesn't fully re-render on resize for D3 charts,
+            // but the graph-container overflow-x handles some responsiveness.
+            // A more robust solution would recalculate scales and redraw.
+        });
+    </script>
+</body>
+</html>
