@@ -1,0 +1,74 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+header {
+    background-color: #4A4A4A;
+    color: #fff;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+header h1 {
+    font-family: 'Lora', serif;
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+main {
+    padding: 2rem 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+section {
+    background-color: #fff;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+h2 {
+    font-family: 'Lora', serif;
+    color: #A52A2A; /* A brown-red color inspired by the PDF */
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: #f4f4f4;
+    border-left: 5px solid #A52A2A;
+    padding: 1.5rem;
+    border-radius: 5px;
+}
+
+.card h3 {
+    margin-top: 0;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+}
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: #4A4A4A;
+    color: #ccc;
+}
+
+footer a {
+    color: #fff;
+    text-decoration: underline;
+}
